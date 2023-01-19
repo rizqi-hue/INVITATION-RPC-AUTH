@@ -7,7 +7,8 @@ option go_package = "./pkg/pb";
 service AuthService {
     rpc Register(RegisterRequest) returns (RegisterResponse) {}
     rpc Login(LoginRequest) returns (LoginResponse) {}
-    rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+    rpc Logout(LogoutRequest) returns (LogoutResponse) {}
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {}
 }
 
 // register
@@ -34,12 +35,19 @@ message LoginResponse {
     string token = 3;
 }
 
-// validate
+// RefreshToken
+message RefreshTokenRequest { string token = 1; }
 
-message ValidateRequest { string token = 1; }
-
-message ValidateResponse {
+message RefreshTokenResponse {
     int64 status = 1;
     string error = 2;
     int64 userId = 3; 
+}
+
+// RefreshToken
+message LogoutRequest { string token = 1; }
+
+message LogoutResponse {
+    int64 status = 1;
+    string error = 2;
 }

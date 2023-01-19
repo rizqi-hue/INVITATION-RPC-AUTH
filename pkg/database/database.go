@@ -16,7 +16,7 @@ func PostgresConnection(ctx context.Context) {
 	l := logger.GetLoggerContext(ctx, "database", "Connect")
 	dsn := config.GetString("postgres_dsn")
 
-	l.Info(dsn)
+	// l.Info(dsn)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 

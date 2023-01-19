@@ -4,13 +4,16 @@ import (
 	"context"
 	"log"
 	"net"
+	"strconv"
 
 	def "github.com/INVITATION-RPC-AUTH/cmd/config"
 	"github.com/INVITATION-RPC-AUTH/domain/handler"
+	"github.com/INVITATION-RPC-AUTH/domain/redis"
 	"github.com/INVITATION-RPC-AUTH/domain/repository"
 	"github.com/INVITATION-RPC-AUTH/domain/services"
 	"github.com/INVITATION-RPC-AUTH/pkg/config"
 	"github.com/INVITATION-RPC-AUTH/pkg/pb"
+	"github.com/INVITATION-RPC-AUTH/pkg/utils"
 	"google.golang.org/grpc"
 )
 
@@ -25,9 +28,22 @@ func NewGrpcServer(ctx context.Context) error {
 		log.Fatalln("Failed to listing:", err)
 	}
 
+	exp_auth, _ := strconv.ParseInt(config.GetString("exp_auth"), 10, 64)
+	jwt := utils.JwtWrapper{
+		SecretKey:       config.GetString("secret"),
+		Issuer:          "go-grpc-auth",
+		ExpirationHours: exp_auth * 365,
+	}
+	
 	userRepo := repository.NewAuthRepository()
+
+	tokenRepo := repository.NewTokenRepository()
+	userRedis := redis.NewAuthRedis(ctx)
 	userService := services.NewAuthService().
 		SetAuthRepository(userRepo).
+		SetTokenRepository(tokenRepo).
+		SetAuthRedis(userRedis).
+		SetAuthJwt(jwt).
 		Validate()
 
 	s := grpc.NewServer()

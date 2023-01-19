@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/INVITATION-RPC-AUTH/domain/models"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type JwtWrapper struct {
@@ -15,17 +15,21 @@ type JwtWrapper struct {
 }
 
 type jwtClaims struct {
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 	Id    int64
 	Email string
 }
 
-func (w *JwtWrapper) GenerateToken(user models.User) (signedToken string, err error) {
+func (w *JwtWrapper) GenerateAccessToken(user models.User) (signedToken string, err error) {
+	// expirationTime := time.Now().Add(5 * time.Minute)
+
+	expirationTime := time.Now().Local().Add(time.Hour * time.Duration(w.ExpirationHours)).Unix()
+
 	claims := &jwtClaims{
 		Id:    user.Id,
 		Email: user.Email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(w.ExpirationHours)).Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Unix(expirationTime, 0)),
 			Issuer:    w.Issuer,
 		},
 	}
@@ -42,6 +46,7 @@ func (w *JwtWrapper) GenerateToken(user models.User) (signedToken string, err er
 }
 
 func (w *JwtWrapper) ValidateToken(signedToken string) (claims *jwtClaims, err error) {
+
 	token, err := jwt.ParseWithClaims(
 		signedToken,
 		&jwtClaims{},
@@ -51,18 +56,22 @@ func (w *JwtWrapper) ValidateToken(signedToken string) (claims *jwtClaims, err e
 	)
 
 	if err != nil {
-		return
+		if err == jwt.ErrSignatureInvalid {
+			return nil, errors.New("err signature invalid")
+		}
+
+		return nil, errors.New("err bad request")
 	}
 
 	claims, ok := token.Claims.(*jwtClaims)
 
 	if !ok {
-		return nil, errors.New("Couldn't parse claims")
+		return nil, errors.New("couldn't parse claims")
 	}
 
-	if claims.ExpiresAt < time.Now().Local().Unix() {
-		return nil, errors.New("JWT is expired")
-	}
+	// if claims.ExpiresAt < jwt.NewNumericDate(time.Now()) {
+	// 	return nil, errors.New("JWT is expired")
+	// }
 
 	return claims, nil
 }

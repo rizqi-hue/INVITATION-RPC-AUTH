@@ -29,10 +29,22 @@ func (s *Server) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResp
 	return result, nil
 }
 
-func (s *Server) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+func (s *Server) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
 
-	return &pb.ValidateResponse{
-		Status: http.StatusOK,
-		UserId: 1,
-	}, nil
+	result, err := s.AuthService.RefreshToken(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *Server) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+
+	result, err := s.AuthService.Logout(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

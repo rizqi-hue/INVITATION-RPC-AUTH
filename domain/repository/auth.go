@@ -46,6 +46,10 @@ func (r *authRepository) Update(user models.User, id int32) (*models.User, error
 }
 
 func (r *authRepository) Delete(id uint32) (bool, error) {
+	err := r.H.Delete(&models.User{}, id).Error
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 }

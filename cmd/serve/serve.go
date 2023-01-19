@@ -37,17 +37,6 @@ func startServer() {
 	logger.Configure()
 	database.PostgresConnection(ctx)
 
-	// jwt := utils.JwtWrapper{
-	// 	SecretKey:       config.GetString("secret"),
-	// 	Issuer:          "go-grpc-auth-svc",
-	// 	ExpirationHours: 24 * 365,
-	// }
-
-	// s := services.Server{
-	// 	H:   h,
-	// 	Jwt: jwt,
-	// }
-
 	err := NewGrpcServer(ctx)
 	if err != nil {
 		panic(err)

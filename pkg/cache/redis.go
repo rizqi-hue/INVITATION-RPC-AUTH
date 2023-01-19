@@ -34,17 +34,17 @@ func NewRedis(ctx context.Context) (Cache, error) {
 	}
 
 	//Default Pool Size
-	poolSize := 10
+	// poolSize := 10
 
-	if cfg.PoolSize != 0 {
-		poolSize = cfg.PoolSize
-	}
+	// if cfg.PoolSize != 0 {
+	// 	poolSize = cfg.PoolSize
+	// }
 
 	conn := redis.NewClient(&redis.Options{
 		Addr:     cfg.Server,
 		Password: cfg.AuthPass, // no password set
 		DB:       0,            // use default DB
-		PoolSize: poolSize,
+		// PoolSize: poolSize,
 	})
 
 	pong, err := conn.Ping(ctx).Result()
@@ -66,43 +66,34 @@ func NewRedis(ctx context.Context) (Cache, error) {
 
 // Get the item with the provided key.
 // Return nil byte if the item didn't already exist in the cache.
-func (m *redisCache) Get(key string) (rcv []byte, err error) {
-	// err = m.client.Do(radix.Cmd(&rcv, "GET", key))
-	// if err != nil {
-	// 	m.logger.Error(fmt.Sprintf("%s %s %s", key, string(rcv), err.Error()))
-	// 	return
-	// }
-	return
+func (m *redisCache) Get(ctx context.Context, key string) (value string, err error) {
+
+	val, err := m.client.Get(ctx, key).Result()
+	if err != nil {
+		return "", err
+	}
+	return val, nil
 }
 
 // Set writes the given item, unconditionally.
-func (m *redisCache) Set(key string, val []byte, expiration time.Duration) (err error) {
+func (m *redisCache) Set(ctx context.Context, key string, val string, expiration time.Duration) (err error) {
 
-	// args := []string{key, string(val)}
-
-	// if expiration != 0 {
-	// 	//EX seconds -- Set the specified expire time, in seconds.
-	// 	//PX milliseconds -- Set the specified expire time, in milliseconds.
-	// 	args = append(args, "EX", fmt.Sprintf("%d", int(expiration.Seconds())))
-	// }
-
-	// err = m.client.Do(radix.Cmd(nil, "SET", args...))
-	// if err != nil {
-	// 	m.logger.Error(fmt.Sprintf("%s %s %s", key, string(val), err.Error()))
-	// 	return
-	// }
+	err = m.client.Set(ctx, key, val, expiration).Err()
+	if err != nil {
+		m.logger.Error(fmt.Sprintf("%s %s %s", key, string(val), err.Error()))
+	}
 
 	return
 }
 
 // Delete deletes the item with the provided key.
 // return nil error if the item didn't already exist in the cache.
-func (m *redisCache) Delete(key string) (err error) {
-	// err = m.client.Do(radix.Cmd(nil, "DEL", key))
-	// if err != nil {
-	// 	m.logger.Error(fmt.Sprintf("%s %s", key, err.Error()))
-	// 	return
-	// }
+func (m *redisCache) Delete(ctx context.Context, key string) (err error) {
+	err = m.client.Del(ctx, key).Err()
+	if err != nil {
+		m.logger.Error(fmt.Sprintf("%s %s", key, err.Error()))
+		return
+	}
 	return
 }
 

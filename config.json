@@ -5,8 +5,9 @@
   "log_level": "DEBUG",
   "log_format": "json",
   "secret": "INVITATION-RPC-AUTH",
+  "exp": 168,
   "redis":{
-    "server": "localhost:6379",
+    "server": "127.0.0.1:6379",
     "timeout": 10,
     "authPass": "",
     "poolSize": 10
